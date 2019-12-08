@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from PIL import Image
 
 # inputFile=open("inputTestColor.txt", "r")
 # WIDE=2
@@ -49,8 +50,8 @@ def findFewestZero(layers):
             minZeroLayer = currentLayer
     return minZeroLayer
 
-# Test layers curruption (the number of 1 digits multiplied by the number of 2 digits)
-def testLayerCurruption(layer):
+# Test layers corruption (the number of 1 digits multiplied by the number of 2 digits)
+def testLayerCorruption(layer):
     countOne=0;
     countTwo=0;
     for i in range(len(layer)):
@@ -73,19 +74,20 @@ def recoverLayers(encodedInput):
         layers.append(M)
     return layers
 
-def reconstructImage(layers):
-    image = initMatrix(TALL, WIDE, 2)
+def reconstructImage(layers, image):
     for i in range (TALL):
         for j in range (WIDE):
             for k in range(0, len(layers)):
                 if layers[k][i][j] != '2':
-                    image[i][j] = layers[k][i][j]
+                    image[i, j] = int(layers[k][i][j])
                     break;
-    return image
 
 decodedLayers = recoverLayers(encodedImage)
 fewestZeroLayer=findFewestZero(decodedLayers)
-print(testLayerCurruption(fewestZeroLayer))
+print(testLayerCorruption(fewestZeroLayer))
 
-image = reconstructImage(decodedLayers)
-printMatrix(image)
+image = Image.new('1', (TALL, WIDE)) # 1 for 1bit black & white (https://pillow.readthedocs.io/en/3.1.x/handbook/concepts.html#modes)
+pixels = image.load()
+reconstructImage(decodedLayers, pixels)
+
+image.save("output.jpeg")
