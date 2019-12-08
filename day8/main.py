@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# inputFile=open("inputTest.txt", "r")
-# WIDE=3
+# inputFile=open("inputTestColor.txt", "r")
+# WIDE=2
 # TALL=2
 inputFile=open("input.txt", "r")
 WIDE=25
@@ -73,11 +73,19 @@ def recoverLayers(encodedInput):
         layers.append(M)
     return layers
 
+def reconstructImage(layers):
+    image = initMatrix(TALL, WIDE, 2)
+    for i in range (TALL):
+        for j in range (WIDE):
+            for k in range(0, len(layers)):
+                if layers[k][i][j] != '2':
+                    image[i][j] = layers[k][i][j]
+                    break;
+    return image
 
 decodedLayers = recoverLayers(encodedImage)
-
-# for layer in decodedLayers:
-#     printMatrix(layer)
-#     print()
 fewestZeroLayer=findFewestZero(decodedLayers)
 print(testLayerCurruption(fewestZeroLayer))
+
+image = reconstructImage(decodedLayers)
+printMatrix(image)
