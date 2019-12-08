@@ -6,7 +6,7 @@
 inputFile=open("input.txt", "r")
 WIDE=25
 TALL=6
-encodedImages=inputFile.read()
+encodedImage=inputFile.read()
 
 
 # Next pixel index
@@ -37,37 +37,35 @@ def printMatrix(m):
             print(m[i][j], end=' ')
         print()
 
-# Return image with fewest zeros
-def findFewestZero(images):
-    minZeroCount=countZeros(images[0])
-    minZeroImage=images[0]
-    mink=0
-    for k in range(1, len(images)):
-        currentImage = images[k]
-        zerosNb = countZeros(currentImage)
+# Return layer with fewest zeros
+def findFewestZero(layers):
+    minZeroCount=countZeros(layers[0])
+    minZeroLayer=layers[0]
+    for k in range(1, len(layers)):
+        currentLayer = layers[k]
+        zerosNb = countZeros(currentLayer)
         if zerosNb < minZeroCount:
             minZeroCount = zerosNb
-            minZeroImage = currentImage
-            mink=k
-    return minZeroImage
+            minZeroLayer = currentLayer
+    return minZeroLayer
 
-# Test images curruption (the number of 1 digits multiplied by the number of 2 digits)
-def testImageCurruption(image):
+# Test layers curruption (the number of 1 digits multiplied by the number of 2 digits)
+def testLayerCurruption(layer):
     countOne=0;
     countTwo=0;
-    for i in range(len(image)):
-        for j in range(len(image[0])):
-            if (image[i][j] == '1'):
+    for i in range(len(layer)):
+        for j in range(len(layer[0])):
+            if (layer[i][j] == '1'):
                 countOne+=1
-            elif image[i][j] == '2':
+            elif layer[i][j] == '2':
                 countTwo+=1
     return countOne * countTwo
 
-# Decode images
+# Decode layers
 def recoverLayers(encodedInput):
     layers=[]
-    nb_images = len(encodedInput) // WIDE // TALL
-    for k in range(0, nb_images):
+    nb_layers = len(encodedInput) // WIDE // TALL
+    for k in range(0, nb_layers):
         M=initMatrix(TALL, WIDE)
         for i in range(0, TALL):
             for j in range(0, WIDE):
@@ -76,10 +74,10 @@ def recoverLayers(encodedInput):
     return layers
 
 
-decodedImages = recoverLayers(encodedImages)
+decodedLayers = recoverLayers(encodedImage)
 
-# for image in decodedImages:
-#     printMatrix(image)
+# for layer in decodedLayers:
+#     printMatrix(layer)
 #     print()
-fewestZeroImage=findFewestZero(decodedImages)
-print(testImageCurruption(fewestZeroImage))
+fewestZeroLayer=findFewestZero(decodedLayers)
+print(testLayerCurruption(fewestZeroLayer))
