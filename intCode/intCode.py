@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
-# inputFile = open("day2test.input", "r")
-inputFile = open("day2.input", "r")
-data = inputFile.read()
-inputFile.close()
+
+def read_file(fileName):
+    inputFile = open(fileName, "r")
+    data = inputFile.read()
+    inputFile.close()
+    return list(map(int, data.split(',')))
 
 
-def restoreAlarm(numbers, noun, verb):
+def restore_alarm(numbers, noun, verb):
     numbers[1] = noun
     numbers[2] = verb
 
 
-def processInstruction(cursor, numbers):
+def process_instruction(cursor, numbers):
     if numbers[cursor] == 1:
         instruction1(cursor, numbers)
     elif numbers[cursor] == 2:
@@ -43,29 +45,40 @@ def intruction99(cursor, numbers):
     pass
 
 
-def updateCursor(cursor, currentInstruction):
+def update_cursor(cursor, currentInstruction):
     return cursor + 4
 
 
-def runSimulation(data, noun, verb):
+def run_simulation(data):
     # print("Running simulation for verb=" + str(verb) + " ,noun=" + str(noun))
-    numbers = list(map(int, data.split(',')))
+    numbers = data.copy()
     cursor = 0
     opcode = numbers[0]
-    restoreAlarm(numbers, noun, verb)
-    while (opcode != 99 and cursor < len(numbers)):
-        processInstruction(cursor, numbers)
+    while opcode != 99 and cursor < len(numbers):
+        process_instruction(cursor, numbers)
         opcode = numbers[cursor]
-        cursor = updateCursor(cursor, opcode)
+        cursor = update_cursor(cursor, opcode)
+    return numbers
 
-    return numbers[0]
 
-for noun in range(len(data)):
-    for verb in range(len(data)):
-        try:
-            result = runSimulation(data, noun, verb)
-        except IndexError:
-            pass
-        if result == 19690720:
-            solution=noun*100 + verb
-            print("****** Found matching: verb=" + str(noun) + " ,noun=" + str(verb) + "-> " + str(solution))
+
+def found_matching_noun_verb(data):
+    for noun in range(len(data)):
+        for verb in range(len(data)):
+            try:
+                restore_alarm(data, noun, verb)
+                res = run_simulation(data)
+                result = res[0]
+            except IndexError:
+                pass
+            if result == 19690720:
+                solution = noun * 100 + verb
+                # print("****** Found matching: verb=" + str(noun) + " ,noun=" + str(verb) + "-> " + str(solution))
+                return solution
+
+
+if __name__ == '__main__':
+    data = read_file("inputs/day2_example.input")
+    run_simulation(data)
+    print(data[0])
+    # print(found_matching_noun_verb(data))
