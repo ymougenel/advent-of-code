@@ -5,7 +5,7 @@ def read_file(fileName):
     inputFile = open(fileName, "r")
     data = inputFile.read()
     inputFile.close()
-    return data.split(",")
+    return list(map(int, data.split(',')))
 
 
 # Set alarm (from day2)
@@ -15,33 +15,34 @@ def restore_alarm(numbers, noun, verb):
 
 
 def get_value(numbers, cursor):
-    return int(numbers[cursor])
+    return numbers[cursor]
 
 
 def set_value(numbers, address, value):
-    numbers[address] = str(value)
+    numbers[address] = value
 
 
 # Return the opcode and the instruction parameter(opcode, [params])
 def parse_parameter_instruction(numbers, cursor):
     # Parse instruction: digits-opcode
-    instruction = numbers[cursor]
+    instruction = str(numbers[cursor])
     opcode = int(instruction[len(instruction) - 1])
-    digits = instruction[0:len(instruction) - 2]
+    digits = str(instruction[0:len(instruction) - 2])
     # Digits processed right -> left
     digits = list(digits[::-1])
 
     required_param = get_required_parameters(opcode)
+
     # Complete digits with default value (0)
     for k in range(len(digits), required_param):
         digits.append('0')
 
-    # TODO: remove me
-    # if (instruction != '99'):
-    #     digits[len(digits) - 1] = '1'
+    # For those instructions, the last param is the address
+    if opcode == 1 or opcode == 2 or opcode == 3 or opcode == 7 or opcode == 8:
+        digits[-1] = 1
 
     params = []
-    for k in range(required_param - 1):
+    for k in range(required_param):
         # Position mode
         if digits[k] == '0':
             address = get_value(numbers, cursor + k + 1)
@@ -52,70 +53,101 @@ def parse_parameter_instruction(numbers, cursor):
     return (opcode, params)
 
 
-def parse_position_mode(cursor, numbers):
-    opcode = int(numbers[cursor])
-    if opcode == 99 or opcode == 4:
-        return (opcode, 0)
-    param1 = int(numbers[int(numbers[cursor + 1])])
-    param2 = int(numbers[int(numbers[cursor + 2])])
-    return (opcode, [param1, param2])
-
-
+# Process and execute the current instruction
 def process_instruction(cursor, numbers, param=0):
     inputs = parse_parameter_instruction(numbers, cursor)
     opcode = inputs[0]
     params = inputs[1]
     if opcode == 1:
-        value = instruction1(numbers, cursor, params)
+        instruction1(numbers, params)
     elif opcode == 2:
-        value = instruction2(numbers, cursor, params)
+        instruction2(numbers, params)
     elif opcode == 3:
-        value = instruction3(numbers, get_value(numbers, cursor + 1), param)
+        instruction3(numbers, params, param)
     elif opcode == 4:
-        value = instruction4(numbers, cursor)
+        instruction4(params)
+    elif opcode == 5:
+        cursor = instruction5(cursor, params)
+    elif opcode == 6:
+        cursor = instruction6(cursor, params)
+    elif opcode == 7:
+        instruction7(numbers, params)
+    elif opcode == 8:
+        instruction8(numbers, params)
     elif opcode == 9 or opcode == 99:
-        value = intruction99(numbers, inputs)
+        intruction99()
     else:
         print("Error while parsing cursor at: " + str(cursor) + ", value = " + str(numbers[cursor]))
-    return (opcode, value)
+        raise NotImplementedError
+    return (opcode, cursor)
 
 
-def instruction1(numbers, cursor, params):
-    address = get_value(numbers, cursor + 3)
+# Addition
+def instruction1(numbers, params):
     value = params[0] + params[1]
-    set_value(numbers, address, value)
-    return value
+    set_value(numbers, params[2], value)
 
 
-def instruction2(numbers, cursor, params):
-    address = get_value(numbers, cursor + 3)
+# Multiplication
+def instruction2(numbers, params):
     value = params[0] * params[1]
-    set_value(numbers, address, value)
-    return value
+    set_value(numbers, params[2], value)
 
 
 # Set param value at address
-def instruction3(numbers, address, param):
-    set_value(numbers, address, param)
-    return param
+def instruction3(numbers, params, param):
+    set_value(numbers, params[0], param)
 
 
 # Output next value
-def instruction4(numbers, cursor):
-    address = get_value(numbers, cursor + 1)
-    value = get_value(numbers, address)
-    print(value)
-    return None
+def instruction4(params):
+    print(params[0])
 
 
-def intruction99(cursor, numbers):
-    # print("processing opcode 99 (from cursor " + str(cursor) + ")")
+# Jump-if-true
+def instruction5(cursor, params):
+    if params[0] != 0:
+        return params[1]
+    else:
+        return cursor
+
+
+# Jump-if-false
+def instruction6(cursor, params):
+    if params[0] == 0:
+        return params[1]
+    else:
+        return cursor
+
+
+# Less than
+def instruction7(numbers, params):
+    if params[0] < params[1]:
+        value = 1
+    else:
+        value = 0
+    set_value(numbers, params[2], value)
+
+
+# Equals
+def instruction8(numbers, params):
+    if params[0] == params[1]:
+        value = 1
+    else:
+        value = 0
+    set_value(numbers, params[2], value)
+
+
+# Stop instruction
+def intruction99():
     return None
 
 
 def get_required_parameters(opcode):
-    if opcode == 1 or opcode == 2:
+    if opcode == 1 or opcode == 2 or opcode == 7 or opcode == 8:
         return 3
+    elif opcode == 5 or opcode == 6:
+        return 2
     elif opcode == 4 or opcode == 3:
         return 1
     else:
@@ -130,16 +162,19 @@ def update_cursor(cursor, currentInstruction):
 
 
 def run_simulation(data, input=0):
-    # print("Running simulation for verb=" + str(verb) + " ,noun=" + str(noun))
     numbers = data.copy()
     cursor = 0
     opcode = numbers[0]
     param = input
-    while opcode != "99" and cursor < len(numbers):
+    while opcode != 99 and opcode != 9 and cursor < len(numbers):
         res = process_instruction(cursor, numbers, param)
         opcode = res[0]
-        param = res[1]
-        cursor = update_cursor(cursor, opcode)
+        # If jump encountered
+        if cursor != res[1]:
+            cursor = res[1]
+        # Else: cursor += parameters used
+        else:
+            cursor = update_cursor(cursor, opcode)
     return numbers
 
 
@@ -152,7 +187,7 @@ def found_matching_noun_verb(data):
                 result = res[0]
             except IndexError:
                 pass
-            if result == "19690720":
+            if result == 19690720:
                 solution = noun * 100 + verb
                 print("****** Found matching: verb=" + str(noun) + " ,noun=" + str(verb) + "-> " + str(solution))
                 return solution
@@ -161,4 +196,3 @@ def found_matching_noun_verb(data):
 if __name__ == '__main__':
     data = read_file("inputs/day5.input")
     run_simulation(data, 1)
-    print(data[0])
