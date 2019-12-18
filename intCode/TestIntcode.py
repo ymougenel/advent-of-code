@@ -13,14 +13,23 @@ class TestIntcode(unittest.TestCase):
         self.assertEqual(data, [2, 0, 0, 0, 99])
 
         # Triple digit instruction
-        data = [102, 4, 3, 4, 33]
+        data = [101, 4, 3, 4, 33]
         intCode.process_instruction(0, data)
-        self.assertEqual(data, [102, 4, 3, 4, 16])
+        self.assertEqual(data, [101, 4, 3, 4, 8])
 
         # Full digit instruction
-        data = [1002, 4, 3, 4, 33]
+        data = [1001, 4, 3, 4, 33]
         intCode.process_instruction(0, data)
-        self.assertEqual(data, [1002, 4, 3, 4, 99])
+        self.assertEqual(data, [1001, 4, 3, 4, 36])
+
+        # With relative base
+        data = [1001, 4, 3, 4, 33] # Nothing change
+        intCode.process_instruction(0, data, relative_base=2)
+        self.assertEqual(data, [1001, 4, 3, 4, 36])
+
+        data = [1201, -2, 4, 4, 33]
+        intCode.process_instruction(0, data, relative_base=2)
+        self.assertEqual(data, [1201, -2, 4, 4, 1205])
 
     # Test multiplication
     def test_instruction2(self):
@@ -88,6 +97,12 @@ class TestIntcode(unittest.TestCase):
         data = [1107, 4, 3, 4, 42]
         intCode.process_instruction(0, data)
         self.assertEqual(data, [1107, 4, 3, 4, 0])
+
+    # Test update relative base
+    def test_instruction9(self):
+        data = [109, 19]
+        res = intCode.process_instruction(0, data, relative_base=2000)
+        self.assertEqual(res[2], 2019)
 
     def test_instruction99(self):
         data = [99]

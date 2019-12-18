@@ -15,18 +15,28 @@ def restore_alarm(numbers, noun, verb):
 
 
 def get_value(numbers, cursor):
+    if cursor >= len(numbers):
+        extend_memory(numbers, cursor)
     return numbers[cursor]
 
 
 def set_value(numbers, address, value):
+    if address >= len(numbers):
+        extend_memory(numbers, address)
     numbers[address] = value
 
 
+# If address outside current memory, extend with zeros(from rule day9)
+def extend_memory(numbers, final_size):
+    zeros = [0] * (1 + final_size - len(numbers))
+    numbers += zeros
+
+
 # Return the opcode and the instruction parameter(opcode, [params])
-def parse_parameter_instruction(numbers, cursor):
+def parse_parameter_instruction(numbers, cursor, relative_base=0):
     # Parse instruction: digits-opcode
     instruction = str(numbers[cursor])
-    opcode = int(instruction[len(instruction) - 1])
+    opcode = int(instruction[len(instruction) - 2:])
     digits = str(instruction[0:len(instruction) - 2])
     # Digits processed right -> left
     digits = list(digits[::-1])
@@ -38,8 +48,8 @@ def parse_parameter_instruction(numbers, cursor):
         digits.append('0')
 
     # For those instructions, the last param is the address
-    if opcode == 1 or opcode == 2 or opcode == 3 or opcode == 7 or opcode == 8:
-        digits[-1] = 1
+    if is_setting_value_instruction(opcode) and digits[-1] == '0':
+        digits[-1] = '1'
 
     params = []
     for k in range(required_param):
@@ -48,14 +58,26 @@ def parse_parameter_instruction(numbers, cursor):
             address = get_value(numbers, cursor + k + 1)
             params.append(get_value(numbers, address))
         # Immediate mode
-        else:
+        elif digits[k] == '1':
             params.append(get_value(numbers, cursor + k + 1))
+        # Relative base
+        else:
+            # For instructions setting values, the last parameter is is address
+            if k == required_param - 1 and is_setting_value_instruction(opcode):
+                params.append(get_value(numbers, cursor + k + 1) + relative_base)
+            else:
+                address = get_value(numbers, cursor + k + 1)
+                params.append(get_value(numbers, address + relative_base))
     return (opcode, params)
 
 
+def is_setting_value_instruction(opcode):
+    return opcode == 1 or opcode == 2 or opcode == 3 or opcode == 7 or opcode == 8
+
+
 # Process and execute the current instruction
-def process_instruction(cursor, numbers, param=0):
-    inputs = parse_parameter_instruction(numbers, cursor)
+def process_instruction(cursor, numbers, param=0, relative_base=0):
+    inputs = parse_parameter_instruction(numbers, cursor, relative_base)
     opcode = inputs[0]
     params = inputs[1]
     if opcode == 1:
@@ -74,12 +96,14 @@ def process_instruction(cursor, numbers, param=0):
         instruction7(numbers, params)
     elif opcode == 8:
         instruction8(numbers, params)
-    elif opcode == 9 or opcode == 99:
+    elif opcode == 9:
+        relative_base = instruction9(params, relative_base)
+    elif opcode == 99:
         intruction99()
     else:
         print("Error while parsing cursor at: " + str(cursor) + ", value = " + str(numbers[cursor]))
         raise NotImplementedError
-    return (opcode, cursor)
+    return (opcode, cursor, relative_base)
 
 
 # Addition
@@ -101,7 +125,7 @@ def instruction3(numbers, params, param):
 
 # Output next value
 def instruction4(params):
-    print(params[0])
+    output(params[0])
 
 
 # Jump-if-true
@@ -111,6 +135,8 @@ def instruction5(cursor, params):
     else:
         return cursor
 
+def output(element):
+    print(element)
 
 # Jump-if-false
 def instruction6(cursor, params):
@@ -138,6 +164,11 @@ def instruction8(numbers, params):
     set_value(numbers, params[2], value)
 
 
+# Update relative_base
+def instruction9(params, relative_base):
+    return relative_base + params[0]
+
+
 # Stop instruction
 def intruction99():
     return None
@@ -148,7 +179,7 @@ def get_required_parameters(opcode):
         return 3
     elif opcode == 5 or opcode == 6:
         return 2
-    elif opcode == 4 or opcode == 3:
+    elif opcode == 3 or opcode == 4 or opcode == 9:
         return 1
     else:
         return 0
@@ -161,14 +192,15 @@ def update_cursor(cursor, currentInstruction):
         return cursor + 1 + get_required_parameters(int(currentInstruction))
 
 
-def run_simulation(data, input=0):
-    numbers = data.copy()
+def run_simulation(numbers, input=0):
     cursor = 0
     opcode = numbers[0]
     param = input
-    while opcode != 99 and opcode != 9 and cursor < len(numbers):
-        res = process_instruction(cursor, numbers, param)
+    relative_base = 0
+    while opcode != 99 and cursor < len(numbers):
+        res = process_instruction(cursor, numbers, param, relative_base)
         opcode = res[0]
+        relative_base = res[2]
         # If jump encountered
         if cursor != res[1]:
             cursor = res[1]
@@ -177,12 +209,12 @@ def run_simulation(data, input=0):
             cursor = update_cursor(cursor, opcode)
     return numbers
 
-
+# Found input alarm that produces an specific result (day2)
 def found_matching_noun_verb(data):
     for noun in range(len(data)):
         for verb in range(len(data)):
             try:
-                restore_alarm(data, noun, verb)
+                restore_alarm(data.copy(), noun, verb)
                 res = run_simulation(data)
                 result = res[0]
             except IndexError:
@@ -194,5 +226,7 @@ def found_matching_noun_verb(data):
 
 
 if __name__ == '__main__':
-    data = read_file("inputs/day5.input")
+    # data = read_file("inputs/day5.input")
+    # data = read_file("inputs/day9_quine.input")
+    data = read_file("inputs/day9.input")
     run_simulation(data, 1)
