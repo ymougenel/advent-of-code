@@ -24,7 +24,7 @@ def validate_position(line):
     password = parts[2][0:]
 
     first_match = bool(password[first_index] == letter)
-    last_match = bool(last_index >= len(password) or password[last_index] == letter)
+    last_match = (last_index >= len(password)) or (password[last_index] == letter)
     return first_match != last_match
 
 
