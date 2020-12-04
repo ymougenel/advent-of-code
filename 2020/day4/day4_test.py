@@ -35,11 +35,12 @@ class day4_test(unittest.TestCase):
 
         # Hair Color
         self.assertTrue(day4.validate_field("hcl", "#123456"))
-        self.assertTrue(day4.validate_field("hcl", "#1dg2s5"))
+        self.assertTrue(day4.validate_field("hcl", "#1da2a5"))
         self.assertFalse(day4.validate_field("hcl", "123456"))
         self.assertFalse(day4.validate_field("hcl", "#12345"))
         self.assertFalse(day4.validate_field("hcl", "#1234567"))
         self.assertFalse(day4.validate_field("hcl", "#1+2345"))
+        self.assertFalse(day4.validate_field("hcl", "#1z2345"))
 
         # Eyes Color
         self.assertTrue(day4.validate_field("ecl", "amb"))
