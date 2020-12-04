@@ -21,7 +21,7 @@ def get_file(file_name):
 
 
 required_fields = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"]
-hair_color = re.compile(r'^#[a-z0-9]{6}$')
+hair_color = re.compile(r'^#[a-f0-9]{6}$')
 passport_id = re.compile(r'^[0-9]{9}$')
 four_digits = re.compile(r'^[0-9]{4}$')
 
