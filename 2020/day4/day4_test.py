@@ -6,7 +6,7 @@ class day4_test(unittest.TestCase):
 
     def test_validate_field_test(self):
         # Birth year
-        self.assertEqual(day4.validate_field("byr", "1920"), True)
+        self.assertTrue(day4.validate_field("byr", "1920"))
         self.assertTrue(day4.validate_field("byr", "2002"))
         self.assertFalse(day4.validate_field("byr", "1919"))
         self.assertFalse(day4.validate_field("byr", "2003"))
