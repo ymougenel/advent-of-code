@@ -5,10 +5,16 @@ def read_file(file_name):
         return [line for line in input_file.read().splitlines()]
 
 
+parent_bag = re.compile('^(\w+ \w+)')
+parent_content = re.compile('(\d) (\w+ \w+)')
+
 def init_tree(rules):
     graph = {}
 
     for rule in rules:
+        bag = parent_bag.search(rule).group()
+        contents = parent_bag.search(rule).group()
+
         bag = rule.split("bags contain")[0].strip()
         contents = rule.split("bags contain")[1] \
             .replace("bags", "") \
