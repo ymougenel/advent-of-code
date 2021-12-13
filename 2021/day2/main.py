@@ -32,13 +32,13 @@ def read_instructions(instructions):
         update_position2(line)
 if __name__ == '__main__':
     # Part 1
-    #data = read_file("inputs/part1.example.txt")
+    #data = read_file("inputs/example1.txt.txt")
     #data = read_file("inputs/input1.txt")
     #read_instructions(data)
     #print(position_x * position_z)
 
     # Part 2
-    #data = read_file("inputs/part1.example.txt")
+    #data = read_file("inputs/example1.txt.txt")
     data = read_file("inputs/input1.txt")
     read_instructions(data)
     print(position_x * position_z)
