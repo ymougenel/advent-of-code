@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
+import math
 import time
+import numpy as np
 from collections import Counter
+
+ORD_A = 65
 
 
 def read_file(file_name):
@@ -8,62 +12,88 @@ def read_file(file_name):
         return [line for line in input_file.read().splitlines()]
 
 
-def insertion(polymer, rules):
-    res = ""
-    for i in range(0, len(polymer) - 1):
-        current_letter = polymer[i]
-        next_letter = polymer[i + 1]
-        insertion_letter = get_rule_instertion_dic(current_letter + next_letter, rules)
-        res += current_letter + insertion_letter
-        # res = f'{res}{current_letter}{insertion_letter}'
-    return res + polymer[-1]
-
-
-def get_rule_instertion(letters, rules):
+def get_transformation_matrix(rules, length=26):
+    transformation_matrix = np.zeros([length, length], int)
     for rule in rules:
-        if rule[0] == letters:
-            return rule[1]
-    return ""
+        part_1 = rule.rsplit(" -> ")[0]
+        part_2 = rule.rsplit(" -> ")[1]
+        index_first_letter = ord(part_1[0]) - ORD_A
+        index_second_letter = ord(part_1[1]) - ORD_A
+        index_third_letter = ord(part_2) - ORD_A + 1
+        transformation_matrix[index_first_letter][index_second_letter] = index_third_letter
+    return transformation_matrix
 
-def get_rule_instertion_dic(letters, rules):
-    if letters in rules.keys():
-        return rules[letters]
-    else:
-        return ""
-def get_tranformation(letters, rules, count):
-    if count == 0:
-        return letters
-    else:
-        letter_inserted = get_rule_instertion_dic(letters, rules)
-        return get_tranformation(letters[0] + letter_inserted, rules, count - 1)[0:-1] + get_tranformation(
-            letter_inserted + letters[1], rules, count - 1)
 
-def get_rules(data):
-    rules = {}
-    for line in data:
-        l = line.rsplit(" -> ")
-        left_el = l[0]
-        right_el = l[1]
-        if left_el not in rules.keys():
-            rules[left_el] = right_el
-        else:
-            rules[left_el] = right_el
-    return rules
+def map_letter_to_vector(letter, length=26):
+    index = ord(letter) - ORD_A
+    vec = np.zeros(length, int)
+    vec[index] = 1
+    return vec
+
 
 if __name__ == '__main__':
     start_time = time.time()
 
     # Part 1
     data = read_file("inputs/part1.example")
-    # data = read_file("inputs/part1.input")
 
-    polymer = data[0]
-    # rules = [line.rsplit(" -> ") for line in data[2:]]
-    rules = get_rules(data[2:])
 
-    print(get_tranformation("NN", rules, 30))
-    # for i in range(20):
-    #     polymer = insertion(polymer, rules)
-    occurences = Counter(polymer)
+def transform(v1, v2, transfo_matrix, length=26):
+    res = np.matmul(transfo_matrix, v2)
+    res = np.matmul(v1, res.transpose())
+
+    vec = np.zeros(length, int)
+    if res != 0:
+        vec[res - 1] = 1
+    return vec
+
+
+def execute_transformation(polymer_matrix, transformation_matrix):
+    insertions = []
+    SIZE = polymer_matrix.shape[0]
+    for i in range(0, SIZE - 1):
+        insertions.append([i, transform(polymer_matrix[i], polymer_matrix[i + 1], transformation_matrix)])
+
+    new_polymer = np.zeros([len(insertions) + SIZE, 26], int)
+    done = 0
+    for i in range(new_polymer.shape[0]):
+        found = False
+        for insert in insertions:
+            if insert[0] + done < i:
+                new_polymer[i] = insert[1]
+                insert[0] = math.inf
+                done += 1
+                found = True
+        if not found:
+            new_polymer[i] = polymer_matrix[i - done]
+            # TODO: break
+    return new_polymer
+
+
+def matrix_to_polymer(matrix):
+    res = ""
+    for i in range(0, len(matrix)):
+        letter_index = 0
+        for j in range(0, len(matrix[0])):
+            if matrix[i][j] == 1:
+                letter_index = j
+                res += chr(letter_index + 65)
+    return res
+
+
+if __name__ == '__main__':
+    data = read_file("inputs/part1.example")
+    data = read_file("inputs/part1.input")
+    tranfo_m = get_transformation_matrix(data[2:])
+
+    polymer_str = data[0]
+    polymer_matrix = np.zeros([len(polymer_str), 26], int)
+    for i in range(0, len(polymer_matrix)):
+        polymer_matrix[i][ord(polymer_str[i]) - ORD_A] = 1
+    for i in range(40):
+        # print(matrix_to_polymer(polymer_matrix))
+        polymer_matrix = execute_transformation(polymer_matrix, tranfo_m)
+    occurences = Counter(matrix_to_polymer(polymer_matrix))
     print(max(occurences.values()) - min(occurences.values()))
-    print("--- %s seconds ---" % (time.time() - start_time))
+
+# print(matrix_to_polymer(polymer_matrix))
