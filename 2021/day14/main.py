@@ -13,8 +13,9 @@ def insertion(polymer, rules):
     for i in range(0, len(polymer) - 1):
         current_letter = polymer[i]
         next_letter = polymer[i + 1]
-        res += current_letter
-        res += get_rule_instertion(current_letter + next_letter, rules)
+        insertion_letter = get_rule_instertion_dic(current_letter + next_letter, rules)
+        res += current_letter + insertion_letter
+        # res = f'{res}{current_letter}{insertion_letter}'
     return res + polymer[-1]
 
 
@@ -24,15 +25,30 @@ def get_rule_instertion(letters, rules):
             return rule[1]
     return ""
 
-
+def get_rule_instertion_dic(letters, rules):
+    if letters in rules.keys():
+        return rules[letters]
+    else:
+        return ""
 def get_tranformation(letters, rules, count):
     if count == 0:
         return letters
     else:
-        letter_inserted = get_rule_instertion(letters, rules)
-        return get_tranformation(letters[0] + letter_inserted, rules, count) + get_tranformation(
-            letter_inserted + letters[1], rules, count)
+        letter_inserted = get_rule_instertion_dic(letters, rules)
+        return get_tranformation(letters[0] + letter_inserted, rules, count - 1)[0:-1] + get_tranformation(
+            letter_inserted + letters[1], rules, count - 1)
 
+def get_rules(data):
+    rules = {}
+    for line in data:
+        l = line.rsplit(" -> ")
+        left_el = l[0]
+        right_el = l[1]
+        if left_el not in rules.keys():
+            rules[left_el] = right_el
+        else:
+            rules[left_el] = right_el
+    return rules
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -42,9 +58,12 @@ if __name__ == '__main__':
     # data = read_file("inputs/part1.input")
 
     polymer = data[0]
-    rules = [line.rsplit(" -> ") for line in data[2:]]
+    # rules = [line.rsplit(" -> ") for line in data[2:]]
+    rules = get_rules(data[2:])
 
-    for i in range(10):
-        polymer = insertion(polymer, rules)
+    print(get_tranformation("NN", rules, 30))
+    # for i in range(20):
+    #     polymer = insertion(polymer, rules)
     occurences = Counter(polymer)
     print(max(occurences.values()) - min(occurences.values()))
+    print("--- %s seconds ---" % (time.time() - start_time))
