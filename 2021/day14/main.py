@@ -51,23 +51,31 @@ def transform(v1, v2, transfo_matrix, length=26):
 def execute_transformation(polymer_matrix, transformation_matrix):
     insertions = []
     SIZE = polymer_matrix.shape[0]
+
     for i in range(0, SIZE - 1):
         insertions.append([i, transform(polymer_matrix[i], polymer_matrix[i + 1], transformation_matrix)])
 
     new_polymer = np.zeros([len(insertions) + SIZE, 26], int)
     done = 0
     for i in range(new_polymer.shape[0]):
-        found = False
-        for insert in insertions:
-            if insert[0] + done < i:
-                new_polymer[i] = insert[1]
-                insert[0] = math.inf
-                done += 1
-                found = True
-        if not found:
+        insertion_found = get_insertion(i, done, insertions)
+
+        if insertion_found:
+            insertions.remove(insertion_found)
+            new_polymer[i] = insertion_found[1]
+            insertion_found[0] = math.inf
+            done += 1
+        else:
             new_polymer[i] = polymer_matrix[i - done]
-            # TODO: break
+        # TODO: break
     return new_polymer
+
+
+def get_insertion(i, done, insertions):
+    for insert in insertions:
+        if insert[0] + done < i:
+            return insert
+    return []
 
 
 def matrix_to_polymer(matrix):
@@ -83,7 +91,7 @@ def matrix_to_polymer(matrix):
 
 if __name__ == '__main__':
     data = read_file("inputs/part1.example")
-    data = read_file("inputs/part1.input")
+    # data = read_file("inputs/part1.input")
     tranfo_m = get_transformation_matrix(data[2:])
 
     polymer_str = data[0]
@@ -92,6 +100,7 @@ if __name__ == '__main__':
         polymer_matrix[i][ord(polymer_str[i]) - ORD_A] = 1
     for i in range(40):
         # print(matrix_to_polymer(polymer_matrix))
+        print("i=" + str(i) + " " +str(len(polymer_matrix)))
         polymer_matrix = execute_transformation(polymer_matrix, tranfo_m)
     occurences = Counter(matrix_to_polymer(polymer_matrix))
     print(max(occurences.values()) - min(occurences.values()))
