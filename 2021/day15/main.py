@@ -21,13 +21,13 @@ def visit(vortex, map, info, visited=[]):
         update_distance((i + k, j), vortex, distance_start, map, info)
         update_distance((i, j + k), vortex, distance_start, map, info)
     current = info[vortex]
-    info[vortex] = (current[0],current[1], True)
+    info[vortex] = (current[0], current[1], True)
 
 
 def solve(map, info):
     visited = []
     info[(0, 0)] = (0, None, False)
-    while info[(len(map)-1, len(map[0])-1)][0] == math.inf and len(visited) < len(map) * len(map[0]):
+    while info[(len(map) - 1, len(map[0]) - 1)][0] == math.inf and len(visited) < len(map) * len(map[0]):
         closer_vortex = get_closer(info, visited)
         visit(closer_vortex, map, info, visited)
 
@@ -54,17 +54,50 @@ def is_in_range(i, j, map):
     return 0 <= i < len(map) and 0 <= j < len(map[0])
 
 
-if __name__ == '__main__':
-    start_time = time.time()
+def extend_map(map):
+    extended_map = [[0 for i in range(len(map) * 5)]
+                    for j in range(len(map[0]) * 5)]
+    for i in range(len(extended_map)):
+        for j in range(len(extended_map[0])):
+            reduced_i = i % len(map)
+            reduced_j = j % len(map[0])
+            i_factor = i // len(map)
+            j_factor = j // len(map[0])
+            new_value = map[reduced_i][reduced_j] + i_factor + j_factor
+            if new_value > 9:
+                new_value = new_value % 9
+            extended_map[i][j] = new_value
 
-    # Part 1
-    map = read_file("inputs/part1.example")
-    map = read_file("inputs/my_example")
-    map = read_file("inputs/part1.input")
+    return extended_map
+
+
+def init_infos(map):
+    infos = {}
     # print(map)
     for i in range(len(map)):
         for j in range(len(map[0])):
             infos[(i, j)] = (math.inf, None, False)
+    return infos
+
+
+if __name__ == '__main__':
+    start_time = time.time()
+
+    # Init
+    # map = read_file("inputs/part1.example")
+    # map = read_file("inputs/my_example")
+    map = read_file("inputs/part1.input")
+
+    # Part 1
+    # infos = init_infos(map)
+    # solve(map, infos)
+
+    # Part 2
+    infos = init_infos(map)
+    map = extend_map(map)
+    infos = init_infos(map)
+
+    print("Cavern size:,", len(map), len(map[0]), len(map) * len(map[0]))
 
     solve(map, infos)
     print(infos[(len(map) - 1, len(map[0]) - 1)])
