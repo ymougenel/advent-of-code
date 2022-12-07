@@ -27,63 +27,30 @@ def parse_commands(lines):
         else:
             current_dir = "/".join(path)
             if current_dir in files:
-                files[current_dir].append((content[1], content[0]))
+                files[current_dir].append((current_dir + "/" + content[1], content[0]))
             else:
-                files[current_dir] = [(content[1], content[0])]
-
-# def get_directory_size(dir):
-#     children = files[dir]
-#     size = 0
-#     for child in children:
-#         if child[1] != "dir":
-#             size += int(child[1])
-#         else:
-#             if child[0] in files_size:
-#                 size += files_size[child[0]]
-#             else:
-#                 size += get_directory_size(child[0])
-#     files_size[dir] = size
-#     return size
+                files[current_dir] = [(current_dir + "/" + content[1], content[0])]
 
 
-depths = {}
-
-
-def depth(dir, current):
-    global depths
-    depths[dir] = current
-    for child in files[dir]:
-        if child[1] == "dir":
-            depth(child[0], current + 1)
-
-
-def getFolderChildren(dir):
-    res = []
-    for content in files[dir]:
-        if content[1] == "dir":
-            res.append(content[0])
-    return res
-
+def get_directory_size(dir):
+    children = files[dir]
+    size = 0
+    for child in children:
+        if child[1] != "dir":
+            size += int(child[1])
+        else:
+            if child[0] in files_size:
+                size += files_size[child[0]]
+            else:
+                size += get_directory_size(child[0])
+    files_size[dir] = size
+    return size
 
 def process_size():
-    global depths
-    i = 0
-    depths[i] = "/"
-    children = getFolderChildren("/")
-    while children:
-        i += 1
-        new_children = []
-        depths[i] = []
-        for child in children:
-            depths[i].append(child)
-            new_children += getFolderChildren(child)
-        children = new_children.copy()
-
-    tree = list(depths.items())
-    tree.reverse()
-    for level in tree:
-        for dir in level[1]:
-            get_directory_size(dir)
+    folders = list(files.keys())
+    folders = sorted(folders, key=lambda f: f.count("/"), reverse=True)
+    for dir in folders:
+        get_directory_size(dir)
 
 
 def solve_part1():
@@ -91,7 +58,6 @@ def solve_part1():
     process_size()
     for dir, size in files_size.items():
         if size <= 100000:
-            print(dir, size)
             total_size += size
     return total_size
 
