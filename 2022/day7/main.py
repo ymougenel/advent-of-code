@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-path = []
 files = {}
-
 files_size = {}
 
 
@@ -13,7 +11,7 @@ def read_file(file_name):
 
 
 def parse_commands(lines):
-    global path
+    path = []
     for line in lines:
         content = line.split(" ")
         # Command
@@ -46,6 +44,7 @@ def get_directory_size(dir):
     files_size[dir] = size
     return size
 
+
 def process_size():
     folders = list(files.keys())
     folders = sorted(folders, key=lambda f: f.count("/"), reverse=True)
@@ -62,8 +61,16 @@ def solve_part1():
     return total_size
 
 
-def solve_part2(data):
-    return data
+def solve_part2():
+    total_size = files_size["/"]
+    required_size = 30000000
+    unused_space = 70000000 - total_size
+    to_free_space = required_size - unused_space
+    folder_to_remove = ("/", total_size)
+    for dir, size in files_size.items():
+        if to_free_space <= size < folder_to_remove[1]:
+            folder_to_remove = (dir, size)
+    return folder_to_remove
 
 
 if __name__ == '__main__':
@@ -75,6 +82,4 @@ if __name__ == '__main__':
     print("Part 1: " + str(solve_part1()))
 
     # Part 2
-    data = read_file("inputs/part2.example")
-    # data = read_file("inputs/part2.input")
-    print("Part 2: " + str(solve_part2(data)))
+    print("Part 2: " + str(solve_part2()))
