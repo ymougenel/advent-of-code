@@ -8,7 +8,7 @@ def read_file(file_name):
         ]
 
 
-def count_visible_trees(trees):
+def find_visible_trees(trees):
     visible_trees = []
     SIZE = len(trees)
     i = 0
@@ -23,7 +23,7 @@ def count_visible_trees(trees):
             j += 1
         i += 1
 
-    return len(visible_trees)
+    return visible_trees
 
 
 def check_tree_visibility(trees, visible_trees, my_tree, maxi, rank):
@@ -38,11 +38,79 @@ def is_in_border(i, j, SIZE):
 
 
 def solve_part1(data):
-    return count_visible_trees(data)
+    return len(find_visible_trees(data))
+
+
+# TODO: clean function (code redundancy)
+def find_view(trees, tree_pos):
+    current_height = trees[tree_pos[0]][tree_pos[1]]
+    views = [0, 0, 0, 0]
+    SIZE = len(trees)
+    ########
+    i = tree_pos[0] - 1
+    j = tree_pos[1]
+    hidden = False
+    while i >= 0 and not hidden:
+        if trees[i][j] >= current_height:
+            views[0] += 1
+            hidden = True
+        else:
+            views[0] += 1
+        i -= 1
+    ########
+    i = tree_pos[0] + 1
+    j = tree_pos[1]
+    hidden = False
+    while i < SIZE and not hidden:
+        if trees[i][j] >= current_height:
+            views[1] += 1
+            hidden = True
+        else:
+            views[1] += 1
+        i += 1
+
+    ########
+    i = tree_pos[0]
+    j = tree_pos[1] + 1
+    hidden = False
+    while j < SIZE and not hidden:
+        if trees[i][j] >= current_height:
+            views[2] += 1
+            hidden = True
+        else:
+            views[2] += 1
+        j += 1
+
+    ########
+    i = tree_pos[0]
+    j = tree_pos[1] - 1
+    hidden = False
+    while j >= 0 and not hidden:
+        if trees[i][j] >= current_height:
+            views[3] += 1
+            hidden = True
+        else:
+            views[3] += 1
+        j -= 1
+    return views
 
 
 def solve_part2(data):
-    return data
+    visibles_trees = find_visible_trees(data)
+    maxi = [0]
+    for tree in visibles_trees:
+        if not is_in_border(tree[0], tree[1], len(data)):
+            views = find_view(data, tree)
+            if multiply(views) >= multiply(maxi):
+                maxi = views
+    return multiply(maxi)
+
+
+def multiply(list):
+    total = 1
+    for elt in list:
+        total *= elt
+    return total
 
 
 if __name__ == '__main__':
@@ -53,6 +121,4 @@ if __name__ == '__main__':
     print("Part 1: " + str(solve_part1(trees)))
 
     # Part 2
-    data = read_file("inputs/part2.example")
-    # data = read_file("inputs/part2.input")
-    print("Part 2: " + str(solve_part2(data)))
+    print("Part 2: " + str(solve_part2(trees)))
