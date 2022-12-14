@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 cave = []
-ground = 0
-for i in range(300):
+MAX_I = 400
+MAX_J = 700
+lowest_block = 0
+for i in range(MAX_I):
     line = []
-    for j in range(640):
+    for j in range(MAX_J):
         line.append(".")
     cave.append(line)
+cave[0][500] = "+"
 
 
 def read_file(file_name):
@@ -32,8 +35,7 @@ def display():
 def sand_fall(max):
     i = 0
     j = 500
-    cave[i][j] = "+"
-    landed = cave[i + 1][j] == "#"
+    landed = False
     while not landed and i <= max:
         if cave[i + 1][j] == ".":
             i += 1
@@ -50,28 +52,37 @@ def sand_fall(max):
 
 
 def solve_part1(data):
-    global ground
+    global lowest_block
     draw_rocks(data)
     k = 0
-    while sand_fall(ground):
+    while sand_fall(lowest_block):
         display()
         k += 1
     return k
 
 
 def solve_part2(data):
-    return data
+    draw_rocks(data)
+    for j in range(MAX_J):
+        cave[lowest_block + 2][j] = "#"
+
+    k = 0
+    while cave[0][500] == "+":
+        sand_fall(lowest_block + 2)
+        # display()
+        k += 1
+    return k
 
 
 def parse(data):
-    global ground
+    global lowest_block
     res = []
     for elts in data:
         tmp1 = []
         for elt in elts:
             tmp2 = elt.split(",")
-            if int(tmp2[1]) > ground:
-                ground = int(tmp2[1])
+            if int(tmp2[1]) > lowest_block:
+                lowest_block = int(tmp2[1])
             tmp1.append((int(tmp2[0]), int(tmp2[1])))
         res.append(tmp1)
     return res
@@ -82,9 +93,8 @@ if __name__ == '__main__':
     data = read_file("inputs/part1.example")
     data = read_file("inputs/part1.input")
     data = parse(data)
-    print("Part 1: " + str(solve_part1(data)))
+    # print("Part 1: " + str(solve_part1(data)))
 
     # Part 2
-    data = read_file("inputs/part2.example")
-    # data = read_file("inputs/part2.input")
-    # print("Part 2: " + str(solve_part2(data)))
+
+    print("Part 2: " + str(solve_part2(data)))
