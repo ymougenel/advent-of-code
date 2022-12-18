@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 
 chamber = [["."] * 7 for k in range(3)]
 highest_rock = -1
@@ -11,13 +12,13 @@ def read_file(file_name):
 
 def add_rock(id):
     global chamber
-    if id == 0:
+    if id % 5 == 0:
         room_required = 1
-    elif id == 1:
+    elif id % 5 == 1:
         room_required = 3
-    elif id == 2:
+    elif id % 5 == 2:
         room_required = 3
-    elif id == 3:
+    elif id % 5 == 3:
         room_required = 4
     else:
         room_required = 2
@@ -27,21 +28,26 @@ def add_rock(id):
         for k in range(required_space):
             chamber.append(["."] * 7)
     if id % 5 == 0:  # Horizontal Rock
-        chamber[len(chamber) - 1] = ["."] * 2 + [str(id)] * 4 + ["."]
+        chamber[highest_rock + 4] = ["."] * 2 + [str(id)] * 4 + ["."]
+        return highest_rock + 4
     elif id % 5 == 1:  # Cross Rock
-        chamber[len(chamber) - 1][3] = str(id)
-        chamber[len(chamber) - 2] = ["."] * 2 + [str(id)] * 3 + ["."] * 2
-        chamber[len(chamber) - 3][3] = str(id)
+        chamber[highest_rock + 6][3] = str(id)
+        chamber[highest_rock + 5] = ["."] * 2 + [str(id)] * 3 + ["."] * 2
+        chamber[highest_rock + 4][3] = str(id)
+        return highest_rock + 6
     elif id % 5 == 2:
-        chamber[len(chamber) - 1][4] = str(id)
-        chamber[len(chamber) - 2][4] = str(id)
-        chamber[len(chamber) - 3] = ["."] * 2 + [str(id)] * 3 + ["."] * 2
+        chamber[highest_rock + 6][4] = str(id)
+        chamber[highest_rock + 5][4] = str(id)
+        chamber[highest_rock + 4] = ["."] * 2 + [str(id)] * 3 + ["."] * 2
+        return highest_rock + 6
     elif id % 5 == 3:
         for k in range(4):
-            chamber[len(chamber) - 1 - k][2] = str(id)
+            chamber[highest_rock + 4 + k][2] = str(id)
+        return highest_rock + 7
     elif id % 5 == 4:
         chamber[highest_rock + 4] = ["."] * 2 + [str(id)] * 2 + ["."] * 3
         chamber[highest_rock + 5] = ["."] * 2 + [str(id)] * 2 + ["."] * 3
+        return highest_rock + 5
 
 
 def move_rock(id, position, dist):
@@ -93,12 +99,12 @@ def rock_fall(id, position):
     return True
 
 
-def run(data):
+def run(data, turns):
     global highest_rock
     gas_index = 0
-    for i in range(2022):
-        add_rock(i)
-        position = len(chamber) - 1
+    for i in range(turns):
+        position = add_rock(i)
+        # display()
         if data[gas_index % len(data)] == ">":
             move_rock(str(i), position, 1)
         else:
@@ -119,10 +125,10 @@ def run(data):
         # display()
 
 
-def solve_part1(data):
-    run(data)
+def solve_part1(data, turns = 2022):
+    run(data, turns)
 
-    return highest_rock
+    return highest_rock + 1
 
 
 def display():
@@ -136,11 +142,12 @@ def solve_part2(data):
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     # Part 1
     data = read_file("inputs/part1.example")
     # data = read_file("inputs/part1.input")
     print("Part 1: " + str(solve_part1(data)))
-
+    print("Solved in : ", (time.time() - start_time))
     # Part 2
     data = read_file("inputs/part2.example")
     # data = read_file("inputs/part2.input")
