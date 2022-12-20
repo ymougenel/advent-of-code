@@ -76,7 +76,7 @@ def move_rock(id, position, dist):
                 current = block_width[1] + block_width[0] - k
             else:
                 current = k
-            if position - i >= 0 and 0 <= current + dist < 7 and chamber[position - i][current] == id:
+            if chamber[position - i][current] == id:
                 chamber[position - i][current] = "."
                 chamber[position - i][current + dist] = id
     block_width[0] += dist
@@ -113,7 +113,7 @@ def rock_fall(id, position):
 def run(data, turns):
     global highest_rock
     gas_index = 0
-    for i in range(2022):
+    for i in range(1000000000000):
         position = add_rock(i)
         # display()
         if data[gas_index % len(data)] == ">":
