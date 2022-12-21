@@ -27,18 +27,30 @@ def create_monkeys(data):
 def solve_part1(data):
     monkeys = create_monkeys(data)
     for i in range(20):
+        # print("################")
+        # print("Turn ", i)
         for monkey in monkeys:
             received = monkey.next_round()
             for item, monkey_dest in received:
                 monkeys[monkey_dest].receive(item)
+    counts = count_items(monkeys)
+    counts.sort()
+    return counts[-1] * counts[-2]
+
+
+def count_items(monkeys):
     counts = []
     for monkey in monkeys:
         count = 0
-        for c in monkey.inspection:
+        for c in monkey.inspection.values():
             count += c
         counts.append(count)
-    counts.sort()
-    return counts[-1] * counts[-2]
+    return counts
+
+
+def display(monkeys):
+    for i in range(len(monkeys)):
+        print("Monkey " + str(i) + " " + str([elt[1] for elt in monkeys[i].items]))
 
 
 def solve_part2(data):
@@ -48,7 +60,7 @@ def solve_part2(data):
 if __name__ == '__main__':
     # Part 1
     data = read_file("inputs/part1.example")
-    # data = read_file("inputs/part1.input")
+    data = read_file("inputs/part1.input")
     print("Part 1: " + str(solve_part1(data)))
 
     # Part 2

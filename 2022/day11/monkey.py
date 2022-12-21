@@ -8,8 +8,6 @@ class Monkey:
         self.if_false = if_false
         self.inspection = {}
         self.count = 1
-        for elt in starting_items:
-            self.inspection[elt[0]] = 1
 
     def next_round(self):
         give_away = []
