@@ -6,14 +6,14 @@ class Monkey:
         self.test = test
         self.if_true = if_true
         self.if_false = if_false
-        self.inspection = {}
+        self.inspection = 0
         self.count = 1
 
-    def next_round(self):
+    def next_round(self, monkeys, division, reduction=False):
         give_away = []
+        self.inspection += len(self.items)
         for item in self.items:
-            self.inspect(item)
-            worry = item[1]
+            worry = item
             if self.operation == "old":
                 operation = worry
             else:
@@ -26,19 +26,16 @@ class Monkey:
                 worry -= operation
             elif self.operator == "/":
                 worry /= operation
-            worry = worry // 3
-            if worry % self.test == 0:
-                give_away.append(([item[0], worry], self.if_true))
+            if not reduction:
+                worry = worry // division
             else:
-                give_away.append(([item[0], worry], self.if_false))
+                worry = worry % reduction
+            if worry % self.test == 0:
+                monkeys[self.if_true].receive(worry)
+            else:
+                monkeys[self.if_false].receive(worry)
         self.items = []
         return give_away
 
     def receive(self, item):
         self.items.append(item)
-
-    def inspect(self, item):
-        if item[0] in self.inspection:
-            self.inspection[item[0]] += 1
-        else:
-            self.inspection[item[0]] = 1

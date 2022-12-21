@@ -14,7 +14,7 @@ def create_monkeys(data):
     monkeys = []
 
     for i in range(0, len(data), 7):
-        starting_items = [(elt, elt) for elt in list(map(int, re_digits.findall(data[i + 1])))]
+        starting_items = [elt for elt in list(map(int, re_digits.findall(data[i + 1])))]
         operator = data[i + 2].split("=")[1].split(" ")[2]
         operation = data[i + 2].split("=")[1].split(" ")[3]
         test = int(re_digits.findall(data[i + 3])[0])
@@ -30,22 +30,17 @@ def solve_part1(data):
         # print("################")
         # print("Turn ", i)
         for monkey in monkeys:
-            received = monkey.next_round()
-            for item, monkey_dest in received:
-                monkeys[monkey_dest].receive(item)
+            received = monkey.next_round(monkeys, 3)
+            # for item, monkey_dest in received:
+            #     monkeys[monkey_dest].receive(item)
+
     counts = count_items(monkeys)
     counts.sort()
     return counts[-1] * counts[-2]
 
 
 def count_items(monkeys):
-    counts = []
-    for monkey in monkeys:
-        count = 0
-        for c in monkey.inspection.values():
-            count += c
-        counts.append(count)
-    return counts
+    return [monkey.inspection for monkey in monkeys]
 
 
 def display(monkeys):
@@ -54,7 +49,18 @@ def display(monkeys):
 
 
 def solve_part2(data):
-    return data
+    monkeys = create_monkeys(data)
+    pgcd = 1
+    for i in set([m.test for m in monkeys]):
+        pgcd *= i
+    for i in range(10000):
+        for monkey in monkeys:
+            monkey.next_round(monkeys, 3, pgcd)
+
+    counts = count_items(monkeys)
+    print(counts)
+    counts.sort()
+    return counts[-1] * counts[-2]
 
 
 if __name__ == '__main__':
@@ -64,6 +70,6 @@ if __name__ == '__main__':
     print("Part 1: " + str(solve_part1(data)))
 
     # Part 2
-    data = read_file("inputs/part2.example")
-    # data = read_file("inputs/part2.input")
+    data = read_file("inputs/part1.example")
+    data = read_file("inputs/part1.input")
     print("Part 2: " + str(solve_part2(data)))
