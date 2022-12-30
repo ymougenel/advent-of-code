@@ -20,13 +20,13 @@ def place_sensors(data):
     min_i = 0
     min_j = 0
     for sj, si, bj, bi in data:
+        distance = manhattan_distance(si, sj, bi, bj)
         max_i = max(max_i, si, bi)
-        max_j = max(max_j, sj, bj)
+        max_j = max(max_j, sj + distance)
         min_i = min(min_i, si, bi)
-        min_j = min(min_j, sj, bj)
+        min_j = min(min_j, sj - distance)
     min_i = abs(min_i)
     min_j = abs(min_j)
-
 
     values = []
     for sj, si, bj, bi in data:
@@ -35,34 +35,20 @@ def place_sensors(data):
     i_row = 10 + min_i
     i_row = 2000000 + min_i
     row = ['.'] * (max_j + min_j + 1)
+
     for si, sj, bi, bj in values:
-        for j in range(len(row)):
-            if manhattan_distance(i_row, j, si, sj) <= manhattan_distance(si, sj, bi, bj):
-                row[j] = "#"
+        rayon = manhattan_distance(si, sj, bi, bj)
+        if si - rayon <= i_row <= si + rayon:
+            start = max(0, sj - rayon + (abs(si - i_row)))
+            end = min(len(row), sj + rayon - (abs(si - i_row)) + 1)
+            for k in range(start, end):
+                row[k] = "#"
     for si, sj, bi, bj in values:
         if si == i_row:
             row[sj] = "S"
         if bi == i_row:
             row[bj] = "B"
     return len([elt for elt in row if elt == "#"])
-
-    """
-    map = np.full((max_i + min_i + 1, max_j + min_j + 1), '.')
-    map = [['.' for x in range(max_j + min_j + 1)] for y in range(max_i + min_i + 1)]
-    for si, sj, bi, bj in values:
-        map[si][sj] = "S"
-        map[bi][bj] = "B"
-        distance = manhattan_distance(si, sj, bi, bj)
-        for i in range(-distance, distance + 1):
-            for j in range(-distance + i, distance + 1 - i):
-                place_empty(i, j, si, sj, map, distance)
-        # print(si, sj, bi, bj)
-        # display(map)
-        # print()
-    display(map)
-    # return len([i for i in range(len(map[0])) if map[2000000 + min_i][i] == "#"])
-    return len([i for i in range(len(map[0])) if map[10 + min_i][i] == "#"])"""
-
 
 
 def place_empty(i, j, si, sj, map, distance):
@@ -91,8 +77,8 @@ def solve_part2(data):
 if __name__ == '__main__':
     # Part 1
     data = read_file("inputs/part1.example")
-    data = read_file("inputs/part1.input")
     print("Part 1: " + str(solve_part1(data)))
+    data = read_file("inputs/part1.input")
 
     # Part 2
     data = read_file("inputs/part2.example")
