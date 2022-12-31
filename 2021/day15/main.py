@@ -63,7 +63,6 @@ def update_distance(child_vortex, parent_vortex, map, info, paths):
     if is_in_range(i, j, map):
         info_child = info[child_vortex]
         child_current_distance = info_child[0]
-        # if child_current_distance > distance_start + map[i][j] or (child_current_distance == distance_start + map[i][j] and info_child[1] > len(map)-i + len(map[0]) -1 + map[i][j]):
         if child_current_distance > distance_start + map[i][j]:
             try:
                 paths.remove((child_current_distance, (i, j)))
