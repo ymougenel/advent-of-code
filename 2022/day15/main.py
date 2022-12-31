@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import re
-import numpy as np
+import time
 
 
 def read_file(file_name):
@@ -14,11 +14,15 @@ def display(map):
         print(map[i])
 
 
+max_i = 0
+max_j = 0
+min_i = 0
+min_j = 0
+values = []
+
+
 def place_sensors(data):
-    max_i = 0
-    max_j = 0
-    min_i = 0
-    min_j = 0
+    global max_j, max_i, min_j, min_i, values
     for sj, si, bj, bi in data:
         distance = manhattan_distance(si, sj, bi, bj)
         max_i = max(max_i, si, bi)
@@ -31,24 +35,6 @@ def place_sensors(data):
     values = []
     for sj, si, bj, bi in data:
         values.append((si + min_i, sj + min_j, bi + min_i, bj + min_j))
-
-    i_row = 10 + min_i
-    i_row = 2000000 + min_i
-    row = ['.'] * (max_j + min_j + 1)
-
-    for si, sj, bi, bj in values:
-        rayon = manhattan_distance(si, sj, bi, bj)
-        if si - rayon <= i_row <= si + rayon:
-            start = max(0, sj - rayon + (abs(si - i_row)))
-            end = min(len(row), sj + rayon - (abs(si - i_row)) + 1)
-            for k in range(start, end):
-                row[k] = "#"
-    for si, sj, bi, bj in values:
-        if si == i_row:
-            row[sj] = "S"
-        if bi == i_row:
-            row[bj] = "B"
-    return len([elt for elt in row if elt == "#"])
 
 
 def place_empty(i, j, si, sj, map, distance):
@@ -66,21 +52,64 @@ def is_in_range(i, j, height, width):
     return 0 <= i < height and 0 <= j < width
 
 
-def solve_part1(data):
-    return place_sensors(data)
+def solve_part1(row):
+    i_row = row + min_i
+    row = ['.'] * (max_j + min_j + 1)
+
+    for si, sj, bi, bj in values:
+        rayon = manhattan_distance(si, sj, bi, bj)
+        if si - rayon <= i_row <= si + rayon:
+            start = max(0, sj - rayon + (abs(si - i_row)))
+            end = min(len(row), sj + rayon - (abs(si - i_row)) + 1)
+            for k in range(start, end):
+                row[k] = "#"
+    for si, sj, bi, bj in values:
+        if si == i_row:
+            row[sj] = "S"
+        if bi == i_row:
+            row[bj] = "B"
+    return len([elt for elt in row if elt == "#"])
 
 
-def solve_part2(data):
-    return data
+def solve_part2(size):
+    for i in range(min_i, min_i + size):
+        j = min_j
+        while j < min_j + size:
+            possible = True
+            k = 0
+            while possible and k < len(values):
+                si, sj, bi, bj = values[k]
+                distance_sensor_beacon = manhattan_distance(si, sj, bi, bj)
+                cur_distance = manhattan_distance(i, j, si, sj)
+                if cur_distance <= distance_sensor_beacon:
+                    possible = False
+                    if j < sj:
+                        j += (sj - j) * 2
+                k += 1
+            j += 1
+            if possible:
+                x = j - min_j - 1
+                y = i - min_i
+                return x * 4000000 + y
+    return None
 
 
 if __name__ == '__main__':
     # Part 1
     data = read_file("inputs/part1.example")
-    print("Part 1: " + str(solve_part1(data)))
+    place_sensors(data)
+    print("Part 1: " + str(solve_part1(10)))
     data = read_file("inputs/part1.input")
+    place_sensors(data)
+    print("Part 1: " + str(solve_part1(2000000)))
 
     # Part 2
-    data = read_file("inputs/part2.example")
-    # data = read_file("inputs/part2.input")
-    print("Part 2: " + str(solve_part2(data)))
+    data = read_file("inputs/part1.example")
+    place_sensors(data)
+    print("Part 2: " + str(solve_part2(20)))
+    data = read_file("inputs/part1.input")
+    place_sensors(data)
+    start_time = time.time()
+
+    print("Part 2: " + str(solve_part2(4000000)))
+    print("Solved in : ", (time.time() - start_time))
