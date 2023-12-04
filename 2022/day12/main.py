@@ -16,9 +16,10 @@ def find_start(maze):
                 return (i, j)
 
 
-def solve_part1(maze):
+def solve_maze(starting_pos, maze):
     global paths
-    i, j = find_start(maze)
+    i_start, j_start = starting_pos
+    i, j = i_start, j_start
     paths[(i, j)] = (None, 0)
     nexts = []
     while maze[i][j] != "E":
@@ -26,14 +27,24 @@ def solve_part1(maze):
         nexts += tmp
         nexts = sorted(nexts, key=lambda x: ord(maze[x[0]][x[1]]),
                        reverse=True)
+        if not nexts:
+            return None, None
+
         i, j = nexts.pop(0)
 
-    return len(find_path(maze, i, j))
+    return (i, j)
 
 
-def find_path(maze, i, j):
+def solve_part1(maze):
+    starting_pos = find_start(maze)
+    exit = solve_maze(starting_pos, maze)
+
+    return len(find_path(exit[0], exit[1], starting_pos))
+
+
+def find_path(i, j, starting_pos):
     solution = []
-    while maze[i][j] != "S":
+    while (i, j) != starting_pos:
         solution.append((i, j))
         i, j = paths[(i, j)][0]
     solution.reverse()
@@ -72,8 +83,20 @@ def is_superior(from_case, to_case):
     return ord(to_case) <= ord(from_case) + 1
 
 
-def solve_part2(data):
-    return data
+def solve_part2(maze):
+    steps = None
+    visited = {}
+    global paths
+    for i in range(len(maze)):
+        for j in range(len(maze[0])):
+            if maze[i][j] == "a":
+                paths = {}
+                exit = solve_maze((i, j), maze)
+                if exit != (None, None):
+                    tmp_steps = len(find_path(exit[0], exit[1], (i, j)))
+                    if steps is None or tmp_steps < steps:
+                        steps = tmp_steps
+    return steps
 
 
 if __name__ == '__main__':
@@ -86,5 +109,5 @@ if __name__ == '__main__':
 
     # Part 2
     data = read_file("inputs/part1.example")
-    # data = read_file("inputs/part2.input")
-    # print("Part 2: " + str(solve_part2(data)))
+    data = read_file("inputs/part1.input")
+    print("Part 2: " + str(solve_part2(data)))
