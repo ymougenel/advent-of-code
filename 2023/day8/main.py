@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import time
 
 directions = ""
@@ -43,55 +44,52 @@ def solve_part1(elements):
     return steps_count
 
 
+def find_node_solutions(node):
+    global steps_count
+    steps_count = 0
+    current = node
+    solution = None
+    paths = {}
+    LEN_DIR = len(directions)
+    while steps_count == 0 or (steps_count % LEN_DIR != 0) or current != node:
+        current = forward(current, elements)
+        steps_count += 1
+        if current[2] == "Z":
+            solution = steps_count
+        walk = steps_count % LEN_DIR
+        if walk in paths:
+            if current in paths[walk]:
+                return solution
+            else:
+                paths[walk].append(current)
+        else:
+            paths[walk] = [current]
+    return solution
+
+
 def solve_part2(elements):
     global steps_count
-    current_nodes = [node for node in elements.keys() if node[2] == "A"]
-    DIRECTIONS_LEN = len(directions)
-    NODES_LEN = len(current_nodes)
-    while True:
-        first = current_nodes[0]
-        chosen_direction = []
-        # Run the first element until his end
-        while chosen_direction == [] or first[2] != "Z":
-            dest = directions[steps_count % DIRECTIONS_LEN]
-            chosen_direction.append(dest)
-            first = choose(first, elements, dest)
-            steps_count += 1
-        current_nodes[0] = first
-
-        # Rerun other nodes
-        for i in range(1, NODES_LEN):
-            elt = current_nodes[i]
-            for j in range(len(chosen_direction)):
-                elt = choose(elt, elements, chosen_direction[j])
-            current_nodes[i] = elt
-        # print(steps_count)
-        # CHeck if all done
-        IS_SOLUTION = True
-        i = 1
-        while i < NODES_LEN and IS_SOLUTION:
-            IS_SOLUTION = current_nodes[i][2] == "Z"
-            i += 1
-        if IS_SOLUTION:
-            return steps_count
+    nodes_solutions = [find_node_solutions(node) for node in elements if node[2] == "A"]
+    res = 1
+    gcd = math.gcd(*nodes_solutions)
+    for sol in nodes_solutions:
+        res *= (sol / gcd)
+    return res * gcd
 
 
 if __name__ == '__main__':
     start_time = time.time()
     # Part 1
     data = read_file("inputs/example1.txt")
-
-    # data = read_file("inputs/input.txt")
+    data = read_file("inputs/input.txt")
     elements = parse_nodes(data)
     print("Part 1: " + str(solve_part1(elements)))
     print("Solved in : ", (time.time() - start_time))
 
     # Part 2
     start_time = time.time()
-    steps_count = 0
     data = read_file("inputs/example2.txt")
     data = read_file("inputs/input.txt")
     elements = parse_nodes(data)
     print("Part 2: " + str(solve_part2(elements)))
     print("Solved in : ", (time.time() - start_time))
-
