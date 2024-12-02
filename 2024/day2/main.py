@@ -3,7 +3,7 @@ import time
 
 def read_file(file_name):
     with open(file_name) as input_file:
-        return [[int(row) for row in line.split(" ")] for line in input_file.read().splitlines()]
+        return [[int(row) for row in line.split(" ")] for line in input_file]
 
 
 def check_increase_decrease_range(liste, min_diff=1, max_diff=3, tolerate=False):
