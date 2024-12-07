@@ -19,13 +19,14 @@ def solve_part1(data):
         expected = line[0]
         operations = generate_operations(line[1])
         for op in operations:
-            if expected == solve_operation(op):
+            if expected == solve_operation(op, expected):
                 res += expected
                 break
 
     return res
 
-def generate_operations(values, inputs=[[]]):
+
+def generate_operations(values, concatenation_activated=False, inputs=[[]]):
     outputs = []
     if len(values) == 1:
         for inp in inputs:
@@ -35,38 +36,42 @@ def generate_operations(values, inputs=[[]]):
         for inp in inputs:
             outputs.append(inp + [values[0], "+"])
             outputs.append(inp + [values[0], "*"])
-    return generate_operations(values[1:], outputs)
+            if concatenation_activated:
+                outputs.append(inp + [values[0], "|"])
 
-def solve_operation(operation):
+    return generate_operations(values[1:], concatenation_activated, outputs)
+
+
+def solve_operation(operation, max= None):
     res = operation[0]
     for i in range(1, len(operation)):
         if operation[i] == "+":
-            res += operation[i+1]
+            res += operation[i + 1]
         elif operation[i] == "*":
-            res *= operation[i+1]
+            res *= operation[i + 1]
+        elif operation[i] == "|":
+            res = int(str(res)+ str(operation[i+1]))
+        if max and res > max:
+            return res
     return res
-    # while operation:
-    #     i = 0
-        # while i < len(operation):
-        #     if operation[i] == "*":
-        #         operation[i] = operation[i-1] * operation[i+1]
-        #         operation.pop(i-1)
-        #         operation.pop(i+1)
-        #     else:
-        #         i += 1
-    # return sum([i for i in operation if i != "+"])
-
-
 
 def solve_part2(data):
-    return data
+    res = 0
+    for line in data:
+        expected = line[0]
+        operations = generate_operations(line[1], True)
+        for op in operations:
+            if expected == solve_operation(op, expected):
+                res += expected
+                break
+
+    return res
 
 
 if __name__ == '__main__':
     # Parse input file
     data = read_file("inputs/example1.txt")
-    # data = read_file("inputs/example2.txt")
-    data = read_file("inputs/input.txt")
+    # data = read_file("inputs/input.txt")
 
     # Part 1
     start_time = time.time()
