@@ -18,7 +18,7 @@ def explore_value(map, i, j, value, path, solutions):
                     explore_value(map, i + m, j + n, value + 1, copy.copy(path)+[(i+m,j+n)], solutions)
 
 
-def solve_part1(map):
+def solve_part(map, is_part1):
     starting_positions = []
     for i in range(len(map)):
         for j in range(len(map)):
@@ -27,15 +27,17 @@ def solve_part1(map):
     final_solutions = []
     for start_pos in starting_positions:
         explore_value(map, start_pos[0], start_pos[1], 1, [start_pos],final_solutions)
-    return get_score(final_solutions)
+    return get_score(final_solutions,is_part1)
 
-def get_score(solutions_path):
+def get_score(solutions_path, is_part1):
     counts = {}
     short_path = []
     for path in solutions_path:
         if (path[0], path[-1]) not in short_path:
             short_path.append((path[0], path[-1]))
-    for path in short_path:
+    if is_part1:
+        solutions_path = short_path
+    for path in solutions_path:
         starter = path[0]
         if starter in counts:
             counts[starter] += 1
@@ -55,10 +57,10 @@ if __name__ == '__main__':
 
     # Part 1
     start_time = time.time()
-    print("Part 1: " + str(solve_part1(data)))
+    print("Part 1: " + str(solve_part(data, is_part1=True)))
     print("-> Part1 solved in: ", (time.time() - start_time))
 
     # Part 2
     start_time = time.time()
-    print("Part 2: " + str(solve_part2(data)))
+    print("Part 2: " + str(solve_part(data, is_part1=False)))
     print("-> Part2 solved in: ", (time.time() - start_time))
