@@ -9,13 +9,11 @@ def read_file(file_name):
         return [[elt for elt in line] for line in input_file.read().splitlines()]
 
 
-discovered = []
-
 
 def discover(puzzle, i, j, current_elt):
     area, perimeter = 0, 0
-    if match_element(puzzle, i, j, current_elt) and (i, j) not in discovered:
-        discovered.append((i, j))
+    if match_element(puzzle, i, j, current_elt) and puzzle[i][j] != ".":
+        puzzle[i][j] = "."
         area += 1
         borders = 4
         # sides = 4
@@ -41,9 +39,10 @@ def solve_part1(puzzle):
     n = len(puzzle)
     for i in range(n):
         for j in range(n):
-            new_area, new_perimeter = discover(puzzle, i, j, puzzle[i][j])
-            if new_area != 0:
-                area_perimeters.append((puzzle[i][j], new_area, new_perimeter))
+            if puzzle[i][j] != ".":
+                new_area, new_perimeter = discover(puzzle, i, j, puzzle[i][j])
+                if new_area != 0:
+                    area_perimeters.append((puzzle[i][j], new_area, new_perimeter))
     print(area_perimeters)
     return compute_price(area_perimeters)
 
@@ -61,7 +60,6 @@ if __name__ == '__main__':
     data = read_file("inputs/example1.txt")
     # data = read_file("inputs/example2.txt")
     # data = read_file("inputs/input.txt")
-
     # Part 1
     start_time = time.time()
     print("Part 1: " + str(solve_part1(data)))
