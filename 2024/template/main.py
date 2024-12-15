@@ -3,7 +3,7 @@ import time
 
 def read_file(file_name):
     with open(file_name) as input_file:
-        return [line for line in input_file]
+        return [line for line in input_file.read().splitlines()]
 
 def solve_part1(data):
     return data
