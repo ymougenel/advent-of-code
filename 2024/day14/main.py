@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 import time
 import re
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, PillowWriter
+import numpy as np
+import glob
+import contextlib
+from PIL import Image
 
 HEIGHT = None
 WIDTH = None
@@ -42,8 +48,6 @@ def solve_part1(robots):
     final_positions = []
     for robot in robots:
         final_positions.append(solve_robot(robot, 100))
-    print(final_positions)
-    display(final_positions)
     return count_quadrants(final_positions)
 
 
@@ -55,8 +59,42 @@ def count_quadrants(positions):
     return top_left * bottom_left * top_right * bottom_right
 
 
-def solve_part2(data):
-    return data
+def solve_part2(robots):
+    k = 0
+    while k < 10000:
+        for robot in robots:
+            next_positions = solve_robot(robot, 1)
+            robot[0], robot[1] = next_positions
+        print(k)
+        display_xmas([[r[0], r[1]] for r in robots], k)
+        k += 1
+    # filepaths
+    fp_in = "./outputs/*.png"
+    fp_out = "./outputs/computed.gif"
+
+    # Generated GIF
+    with contextlib.ExitStack() as stack:
+
+        # lazily load images
+        imgs = (stack.enter_context(Image.open(f))
+                for f in sorted(glob.glob(fp_in)))
+
+        # extract  first image from iterator
+        img = next(imgs)
+
+        img.save(fp=fp_out, format='GIF', append_images=imgs,
+                 save_all=True, duration=200, loop=0)
+
+
+def display_xmas(positions, iteration):
+    img = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+    for pos in positions:
+        img[pos[1]][pos[0]] = [255, 0, 0]
+    plt.imsave('outputs/Xmax_' + str(iteration) + '.png', img)
+
+    # plt.title('Iteration:' + str(iteration), fontweight="bold")
+    # plt.pause(0.01)
+    # plt.imshow(img)
 
 
 if __name__ == '__main__':
