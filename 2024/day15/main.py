@@ -97,13 +97,15 @@ def run_simulation(puzzle, directions):
     position = find_initial_position(puzzle)
     k = 0
     for str_dir in directions:
-        print(str_dir)
         dir = map_str_to_dir(str_dir)
         new_puzzle = copy.deepcopy(puzzle)
         if can_move(position, dir, puzzle):
+            zoom_display(puzzle, position)
             puzzle = move(position, dir, puzzle, new_puzzle, [])
             position = position[0] + dir[0], position[1] + dir[1]
         # display(puzzle)
+        print(str_dir)
+        zoom_display(puzzle,position)
         k += 1
         print("Processed %d%", k * 100 / len(directions))
     return puzzle
@@ -124,7 +126,15 @@ def calculate_gps_coordinates(puzzle):
                 total += 100 * i + j
     return total
 
-
+def zoom_display(puzzle,position):
+    i,j = position
+    window = 5
+    for m in range(max(0,i-window), min(i+window, len(puzzle))):
+        tmp = ""
+        for n in range(max(0,j-window), min(j+window, len(puzzle[0]))):
+            tmp+=puzzle[m][n]
+        print(tmp)
+    print("\n")
 def display(puzzle):
     for line in puzzle:
         print(line)
@@ -173,6 +183,8 @@ if __name__ == '__main__':
     data = read_file("inputs/example2.txt")
     # data = read_file("inputs/example3.txt")
     data = read_file("inputs/input.txt")
+    # <^>v>>>^^
+    # data = read_file("inputs/example.txt")
 
     # Part 1
     start_time = time.time()

@@ -15,11 +15,11 @@ def find_element(puzzle, elt):
                 return i, j
 
 
-explored = {}
+distance_explored = {}
 
 
 def update_exporation(i, j, value, path_len):
-    global explored
+    global distance_explored
     if (i, j) in explored:
         if value < explored[(i, j)][0]:
             explored[(i, j)] = (value, path_len)
@@ -37,7 +37,7 @@ def explore(puzzle, i, j, prev_m, prev_n, points, path_len):
         update_exporation(i, j, points, path_len)
     else:
         # If already went there with shortest path
-        if (i, j) in explored and explored[(i, j)][0] < points:
+        if (i, j) in distance_explored and distance_explored[(i, j)][0] < points:
             return
         else:
             update_exporation(i, j, points, path_len)
@@ -58,8 +58,8 @@ def display(puzzle):
     new_puz = copy.deepcopy(puzzle)
     for i in range(len(puzzle)):
         for j in range(len(puzzle[0])):
-            if (i, j) in explored:
-                new_puz[i][j] = explored[(i, j)]
+            if (i, j) in distance_explored:
+                new_puz[i][j] = distance_explored[(i, j)]
                 p1 = str(new_puz[i][j][0])
                 p2 = str(new_puz[i][j][1])
                 new_puz[i][j] = p1 + " " * (7 - len(p1)) + p2 + " " * (3 - len(p2))
@@ -75,9 +75,9 @@ def solve_part1(puzzle):
     while to_explore:
         elt = to_explore.pop()
         explore(puzzle, *elt)
-    print(explored[find_element(puzzle, "E")])
+    print(distance_explored[find_element(puzzle, "E")])
     display(puzzle)
-    return explored[find_element(puzzle, "E")]
+    return distance_explored[find_element(puzzle, "E")]
 
 
 def solve_part2(data):
@@ -87,13 +87,37 @@ def solve_part2(data):
 def count_best_seats(puzzle):
     i, j = find_element(puzzle, 'E')
 
-    to_be_counted = [(i, j, explored[(i, j)])]
+    posibilities = get_counting_neighbour(puzzle, i, j, distance_explored[(i, j)])
+    first = sorted(posibilities, key= lambda x: x[2][0])[0]
+
+    to_be_counted = [(*first, [(i,j)])]
+
     count = []
+
     while to_be_counted:
-        elt = to_be_counted.pop()
-        to_be_counted += get_counting_neighbour(puzzle, *elt)
-        count.append(elt)
-    return len(set(count))
+        # elt = to_be_counted.pop()
+        i,j, cur_exploration, path = to_be_counted.pop()
+        if puzzle[i][j] == "S":
+            path.append((i,j))
+            count.append(path)
+        else:
+
+            neighbours = get_counting_neighbour(puzzle, i,j,cur_exploration)
+            if len(neighbours) == 0:
+                pass
+            elif len(neighbours) == 1:
+                path.append((i,j))
+                to_be_counted.append((*neighbours[0], path))
+            else:
+                for pos in neighbours:
+                    new_path = copy.deepcopy(path)
+                    to_be_counted.append((*pos, new_path))
+    final_count = []
+    for path in count:
+        for elt in path:
+            if elt not in final_count:
+                final_count.append(elt)
+    return len(final_count)
 
 
 def get_counting_neighbour(puzzle, i, j, current_points):
@@ -101,8 +125,8 @@ def get_counting_neighbour(puzzle, i, j, current_points):
     for m in range(-1, 2):
         for n in range(-1, 2):
             if (abs(m) + abs(n) == 1 and is_in_range(puzzle, i + m, j + n) and puzzle[i + m][j + n] != "#"
-                    and explored[(i + m, j + n)][1] == current_points[1] -1 ):
-                possibilities.append((i + m, j + n, explored[(i + m, j + n)]))
+                    and distance_explored[(i + m, j + n)][1] == current_points[1] -1):
+                possibilities.append((i + m, j + n, distance_explored[(i + m, j + n)]))
                 # possibilities = sorted(possibilities, key=lambda x: x[2])
                 # possibilities = [elt for elt in possibilities if elt[2] == possibilities[0][2]]
     return possibilities
@@ -111,8 +135,8 @@ def get_counting_neighbour(puzzle, i, j, current_points):
 if __name__ == '__main__':
     # Parse input file
     data = read_file("inputs/example1.txt")
-    data = read_file("inputs/example2.txt")
-    # data = read_file("inputs/input.txt")
+    # data = read_file("inputs/example2.txt")
+    data = read_file("inputs/input.txt")
 
     # Part 1
     start_time = time.time()

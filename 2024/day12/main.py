@@ -94,8 +94,9 @@ def compute_price_part_2(area_perimeters):
 if __name__ == '__main__':
     # Parse input file
     data = read_file("inputs/example1.txt")
+    data = read_file("inputs/example.txt")
     # data = read_file("inputs/example2.txt")
-    data = read_file("inputs/input.txt")
+    # data = read_file("inputs/input.txt")
     # Part 1
     start_time = time.time()
     print("Part 1: " + str(solve_part1(copy.deepcopy(data))))
