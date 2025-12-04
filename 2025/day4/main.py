@@ -12,12 +12,10 @@ def solve_part1(grid):
 
 
 def solve_part2(grid):
-    removable_papers = None
     count = 0
-    while removable_papers != []:
-        removable_papers = find_removable_papers(grid)
+    while removable_papers := find_removable_papers(grid):
         count += len(removable_papers)
-        for i,j in removable_papers:
+        for i, j in removable_papers:
             grid[i][j] = 'X'
     return count
 
@@ -30,13 +28,13 @@ def find_removable_papers(grid):
                 accessed_paper.append((i, j))
     return accessed_paper
 
+
 def find_adjacent_rolls(grid, i, j):
     count_rolls = 0
     for m in range(-1, 2):
         for n in range(-1, 2):
-            if (m, n) != (0, 0):
-                if is_in_range(grid, i + m, j + n) and grid[i + m][j + n] == '@':
-                    count_rolls += 1
+            if (m, n) != (0, 0) and is_in_range(grid, i + m, j + n) and grid[i + m][j + n] == '@':
+                count_rolls += 1
     return count_rolls
 
 
@@ -46,14 +44,14 @@ def is_in_range(grid, i, j):
 
 if __name__ == '__main__':
     # Parse input file
-    data = read_file("inputs/example1.txt")
-    data = read_file("inputs/input.txt")
+    grid = read_file("inputs/example1.txt")
+    grid = read_file("inputs/input.txt")
     # Part 1
     start_time = time.time()
-    print("Part 1: " + str(solve_part1(data)))
+    print("Part 1: " + str(solve_part1(grid)))
     print("-> Part1 solved in: ", (time.time() - start_time))
 
     # Part 2
     start_time = time.time()
-    print("Part 2: " + str(solve_part2(data)))
+    print("Part 2: " + str(solve_part2(grid)))
     print("-> Part2 solved in: ", (time.time() - start_time))
