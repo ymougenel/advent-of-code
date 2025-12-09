@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import time
+import re
 
 def read_file(file_name):
     with open(file_name) as input_file:
         return [line for line in input_file.read().splitlines()]
+
+def parse_line(line):
+    return re.compile(r'\d+').findall(line)
 
 def solve_part1(data):
     return data
