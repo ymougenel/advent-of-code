@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import time
 import re
-
-from debian.debtags import output
+import bisect
 
 
 def read_file(file_name):
@@ -37,13 +36,19 @@ def parse_indicator_light_diagram(line):
     return binary_diag
 
 
-def apply_switch(diag, switch, is_part2):
+found_match = False
+
+
+def apply_switch(diag, switch, is_part2=False, expected_diagram=None):
     new_diag = diag.copy()
+    global found_match
     for s in switch:
         new_diag[s] = (new_diag[s] + 1)
         if not is_part2:
             new_diag[s] = new_diag[s] % 2
 
+    if is_part2 and new_diag == expected_diagram:
+        found_match = True
     return new_diag
 
 
@@ -52,7 +57,12 @@ def run_switches(path, diag, switches, is_part2=False):
         start_index = switches.index(path[-1])
     else:
         start_index = 0
-    return [(path + [s], apply_switch(diag, s, is_part2)) for s in switches[start_index:]]
+    return [(path + [s], apply_switch(diag, s, None)) for s in switches[start_index:]]
+
+
+def run_switches2(path, diag, switches, expected_pattern):
+    # TODO order
+    return [(path + [s], apply_switch(diag, s, True, expected_pattern)) for s in switches]
 
 
 def solve_part1(data):
@@ -60,29 +70,54 @@ def solve_part1(data):
     k = 0
 
     for expected_diag, switches, joltage in data:
-        presses_count = compute_line(expected_diag, switches)
+        presses_count = compute_line_part1(expected_diag, switches)
         k += 1
         # print(f'Computed ->', k/len(data)*100)
         total += presses_count
     return total
 
 
-def compute_line(expected_diag, switches, part2=False):
+def compute_line_part1(expected_diag, switches):
     # Initial state: path is empty and diag is full of zeros
     to_compute = [([], [0 for i in expected_diag])]
-    pattern_encountered = []
     while to_compute:
         first_path, first_diag = to_compute[0]
         to_compute = to_compute[1:]
-        res = run_switches(first_path, first_diag, switches, part2)
+        res = run_switches(first_path, first_diag, switches)
         find_matching = [r for r in res if r[1] == expected_diag]
         if find_matching:
             return len(find_matching[0][0])
-        if part2:
-            res = [elt for elt in res if is_valid(elt[1], expected_diag) and elt[1] not in pattern_encountered]
-            pattern_encountered += [elt[1] for elt in res]
-
         to_compute += res
+
+
+def compute_line_part2(expected_diag, switches):
+    # Initial state: path is empty and diag is full of zeros
+    to_compute = [([], [0 for i in expected_diag])]
+    switches = sorted(switches, key=lambda switch: len(switch))
+    global found_match
+    found_match = False
+    pattern_encountered = []
+    while to_compute:
+        first_path, first_diag = to_compute.pop()
+        res = run_switches2(first_path, first_diag, switches, expected_diag)
+        if found_match:
+            find_matching = [r for r in res if r[1] == expected_diag]
+            return len(find_matching[0][0])
+
+        # res = [elt for elt in res if is_valid(elt[1], expected_diag) and elt[1] not in pattern_encountered]
+        res = [elt for elt in res if is_valid(elt[1], expected_diag)]
+        to_compute.extend(res)
+        # for elt in res:
+        #     to_compute.append(elt)
+        # bisect.insort(to_compute, elt, key=lambda pat: compute_pattern_score(pat[1]))
+        # pattern_encountered += [(elt[1],len(elt[0])) for elt in res]
+
+
+def has_been_encountered_before(pattern, encountered):
+    for encountered_pattern, length in encountered:
+        if encountered_pattern[0] == pattern[1] and len(pattern[0]) > len(encountered_pattern[1]):
+            return False
+    return True
 
 
 def is_valid(pattern, expected_pattern):
@@ -97,11 +132,15 @@ def solve_part2(data):
     k = 0
 
     for expected_diag, switches, joltage in data:
-        presses_count = compute_line(joltage, switches, True)
+        presses_count = compute_line_part2(joltage, switches)
         k += 1
         print(f'Computed ->', k / len(data) * 100)
         total += presses_count
     return total
+
+
+def compute_pattern_score(pattern):
+    return sum(pattern)
 
 
 if __name__ == '__main__':
@@ -111,9 +150,9 @@ if __name__ == '__main__':
     data = read_file("inputs/input.txt")
 
     # Part 1
-    # start_time = time.time()
-    # print("Part 1: " + str(solve_part1(data)))
-    # print("-> Part1 solved in: ", (time.time() - start_time))
+    start_time = time.time()
+    print("Part 1: " + str(solve_part1(data)))
+    print("-> Part1 solved in: ", (time.time() - start_time))
 
     # Part 2
     start_time = time.time()
