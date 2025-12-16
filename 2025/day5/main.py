@@ -28,35 +28,30 @@ def is_fresh(ingredient, ranges):
 
 
 def solve_part2(ranges):
-    new_ranges = ranges.copy()
     ranges = sorted(ranges, key=lambda x: x[0])
     optimized = True
     while optimized:
         optimized = False
+        new_ranges = []
+        intersection_ranges = []
+        # Loop throw ranges to find intersections
         for i in range(len(ranges)):
             r1 = ranges[i]
             for j in range(i + 1, len(ranges)):
                 r2 = ranges[j]
-                opti, nr = find_intersection2(r1[0], r1[1], r2[0], r2[1])
-                if opti:
-                    if r1 in new_ranges:
-                        new_ranges.remove(r1)
-                    if r2 in new_ranges:
-                        new_ranges.remove(r2)
-                    new_ranges.append(nr)
+                intersection_is_found, intersection_new_range = find_intersection(r1[0], r1[1], r2[0], r2[1])
+                if intersection_is_found:
+                    intersection_ranges.append(r1)
+                    intersection_ranges.append(r2)
+                    new_ranges.append(intersection_new_range)
                     optimized = True
-        ranges = new_ranges.copy()
+        ranges = list(set(new_ranges + [r for r in ranges if r not in intersection_ranges]))
+        ranges = sorted(ranges, key=lambda x: x[0])
 
     res = 0
     for r in ranges:
         res += r[1] - r[0] + 1
     return res
-
-def find_intersection2(mini1, maxi1, mini2, maxi2):
-    if mini2 <= maxi1 <= maxi2:
-        return True, (mini1, maxi2)
-    else:
-        return False, (None, None)
 
 
 def find_intersection(mini1, maxi1, mini2, maxi2):
